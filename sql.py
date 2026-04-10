@@ -5,14 +5,15 @@ import streamlit as st
 import os
 import sqlite3
 
+import pandas as pd
 import google.generativeai as genai
 
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-def get_gemini_response(question,prompt):
-    model=genai.GenerativeModel('gemini-2.0-pro')
+def get_gemini_response(question, prompt):
+    model = genai.GenerativeModel('gemini-2.5-flash')
     response = model.generate_content([prompt[0], question])
-    return response.text
+    return response.text.strip()
 
 def read_sql_query(sql, db):
     try:
@@ -20,6 +21,7 @@ def read_sql_query(sql, db):
         cursor = conn.cursor()
         cursor.execute(sql)
         result = cursor.fetchall()
+        conn.commit()
         conn.close()
         return result
     except Exception as e:
@@ -62,7 +64,15 @@ if submit:
     st.subheader("Generated SQL Query:")
     st.code(sql_query, language="sql")
 
-    response = read_sql_query(sql_query, 'studentdb.db')
+    db_path = r"D:\GenAI\Gemini Pro Project\studentdb.db"
+    response = read_sql_query(sql_query, db_path)
+    st.write("Using DB path:", db_path)
 
     st.subheader("Query Result:")
-    st.write(response)
+    if isinstance(response, str):
+        st.error(response)
+    else:
+        df = pd.DataFrame(response, columns=["NAME", "CLASS", "AGE"])
+        st.dataframe(df)
+
+
