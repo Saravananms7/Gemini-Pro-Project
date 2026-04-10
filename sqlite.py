@@ -21,3 +21,7 @@ print("Data inserted are:")
 data=cursor.execute('''SELECT * FROM students''')
 for row in data:
     print(row)
+    
+
+connection.commit()
+connection.close()  
